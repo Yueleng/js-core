@@ -52,7 +52,7 @@ class CustomPromise {
       onRejected = () => this.value;
     }
 
-    return new CustomPromise((resolve, reject) => {
+    let _promise = new CustomPromise((resolve, reject) => {
       if (this.status == CustomPromise.PENDING) {
         //   this.callbacks.push(onFulfilled);
         //   this.callbacks.push(onRejected);
@@ -60,94 +60,42 @@ class CustomPromise {
         // a betterway to deal with callbacks.
         this.callbacks.push({
           onFulfilled: (value) => {
-            try {
-              let result = onFulfilled(value);
-              if (result instanceof CustomPromise) {
-                // result.then(
-                //   (value) => {
-                //     resolve(value);
-                //   },
-                //   (reason) => {
-                //     reject(reason);
-                //   }
-                // );
-                result.then(resolve, reject);
-              } else {
-                resolve(result);
-              }
-            } catch (error) {
-              reject(error);
-            }
+            this._parse(_promise, onFulfilled(value), resolve, reject);
           },
           onRejected: (reason) => {
-            try {
-              let result = onRejected(reason);
-              if (result instanceof CustomPromise) {
-                // result.then(
-                //   (value) => {
-                //     resolve(value);
-                //   },
-                //   (reason) => {
-                //     reject(reason);
-                //   }
-                // );
-                result.then(resolve, reject);
-              } else {
-                resolve(result);
-              }
-            } catch (error) {
-              reject(error);
-            }
+            this._parse(_promise, onRejected(reason), resolve, reject);
           },
         });
       }
 
       if (this.status == CustomPromise.FULFILLED) {
         setTimeout(() => {
-          try {
-            let result = onFulfilled(this.value);
-            if (result instanceof CustomPromise) {
-              //   result.then(
-              //     (value) => {
-              //       resolve(value);
-              //     },
-              //     (reason) => {
-              //       reject(reason);
-              //     }
-              //   );
-              result.then(resolve, reject);
-            } else {
-              resolve(result);
-            }
-          } catch (error) {
-            reject(error);
-          }
+          this._parse(_promise, onFulfilled(this.value), resolve, reject);
         });
       }
 
       if (this.status == CustomPromise.REJECTED) {
         setTimeout(() => {
-          try {
-            let result = onRejected(this.value);
-            if (result instanceof CustomPromise) {
-              //   result.then(
-              //     (value) => {
-              //       resolve(value);
-              //     },
-              //     (reason) => {
-              //       reject(reason);
-              //     }
-              //   );
-              result.then(resolve, reject);
-            } else {
-              resolve(result);
-            }
-          } catch (error) {
-            reject(error);
-          }
+          this._parse(_promise, onRejected(this.value), resolve, reject);
         });
       }
     });
+
+    return _promise;
+  }
+
+  _parse(promise, result, resolve, reject) {
+    try {
+      if (result === promise)
+        throw new TypeError("Chaining cycle detected for promise");
+      if (result instanceof CustomPromise) {
+        result.then(resolve, reject);
+      } else {
+        resolve(result);
+      }
+    } catch (error) {
+      reject(error);
+    }
   }
 }
 
