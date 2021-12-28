@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Custom Promise</title>
+    <script src="CustomPromise.js"></script>
+
+    <script>
+      let p = new CustomPromise((resolve, reject) => {
+        // resolve("Resolved");
+        reject("Rejected");
+        // setTimeout(() => {
+        //   resolve("Resolved");
+        //   console.log("Just finished Resolve");
+        // }, 1000);
+        // setTimeout(() => {
+        //   reject("Rejected");
+        //   console.log("Just Finished Reject");
+        // }, 1000);
+      })
+        .then(
+          () => {},
+          (reason) => {
+            console.log(reason);
+            return new CustomPromise((resolve, reject) => {
+              resolve("New promise1");
+            });
+          }
+        )
+        .then(
+          (value) => {
+            // console.log(value);
+            // throw new Error("throw error");
+            console.log(value);
+            return new CustomPromise((resolve, reject) => {
+              reject("New Promise2");
+            });
+          },
+          (reason) => {
+            console.log(reason);
+            return reason;
+          }
+        )
+        .then(
+          (value) => {
+            console.log("second resolve", value);
+          },
+          (reason) => {
+            console.log("error: ", reason);
+          }
+        );
+      console.log("Custom Promise");
+    </script>
+  </head>
+  <body></body>
+</html>
